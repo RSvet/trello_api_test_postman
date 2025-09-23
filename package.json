@@ -1,0 +1,11 @@
+{
+  "name": "trello-tests",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "test:trello": "newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html"
+  },
+  "author": "Svetlana",
+  "license": "ISC"
+}

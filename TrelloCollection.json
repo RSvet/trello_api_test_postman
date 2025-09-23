@@ -1,0 +1,2324 @@
+{
+	"info": {
+		"_postman_id": "d6b6cae0-4413-45d9-a05b-2ae09425ff64",
+		"name": "Trello API",
+		"description": "This collection contains automated tests for the Trello API, covering common operations on boards, lists, and cards.\n\nThe tests are organized to verify both the expected “happy path” scenarios and how the API handles errors.\n\n**Usage:**\n\n- Designed to be run via **Collection Runner** or **Newman** for full automation\n    \n- Manual execution is possible, but some requests (e.g., loops for creating/deleting multiple cards) may require multiple sends\n    \n- Environment variables (`TrelloEnv.json`) are used for API key, token, and base url\n    \n- Ids, names are stored as Collection variables\n    \n- Variables (collection and local) are initialized and/or cleared at appropriate steps to maintain consistent state\n    \n- Newman can generate an HTML report using newman-reportel-htmlextra",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30403835",
+		"_collection_link": "https://lively-firefly-719422.postman.co/workspace/Trello-API-testing~020287ed-6d31-4e92-8db7-3a22c44625da/collection/30403835-d6b6cae0-4413-45d9-a05b-2ae09425ff64?action=share&source=collection_link&creator=30403835"
+	},
+	"item": [
+		{
+			"name": "Happy Path (E2E)",
+			"item": [
+				{
+					"name": "Create a board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Board created\", function () {   \r",
+									"    const data = pm.response.json()\r",
+									"    pm.collectionVariables.set(\"boardId\", data.id)\r",
+									"    pm.expect(data.name).to.eql(pm.variables.get(\"boardName\"))\r",
+									"    pm.expect(data.closed).to.be.false;\r",
+									"    pm.expect(data.url).to.be.a(\"string\");\r",
+									"})\r",
+									"\r",
+									"const boardSchema = {\r",
+									"    type: \"object\",\r",
+									"    required: [\"id\", \"name\", \"url\", \"closed\"],\r",
+									"    properties: {\r",
+									"        id: { type: \"string\" },\r",
+									"        name: { type: \"string\" },\r",
+									"        url: { type: \"string\" },\r",
+									"        closed: { type: \"boolean\" }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response matches board schema\", function () {\r",
+									"    pm.response.to.have.jsonSchema(boardSchema);\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"boardName\", \"Trello API Test Board\")"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards?name={{boardName}}&key={{apiKey}}&token={{token}}&defaultLists=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{boardName}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "defaultLists",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all boards",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Board exists in list\", function () {\r",
+									"    const boards = pm.response.json()\r",
+									"    const boardExists = boards.some(b => b.id === pm.collectionVariables.get(\"boardId\"))\r",
+									"    pm.expect(boardExists).to.be.true\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/members/me/boards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"members",
+								"me",
+								"boards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create list A",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"listNameA\", \"List A\")\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"List created\", function () {   \r",
+									"    const data = pm.response.json()\r",
+									"    pm.collectionVariables.set(\"listAId\", data.id)\r",
+									"    pm.expect(data.name).to.eql(pm.variables.get(\"listNameA\"))\r",
+									"})\r",
+									"\r",
+									"const listSchema = {\r",
+									"    type: \"object\",\r",
+									"    required: [\"id\", \"name\", \"idBoard\", \"closed\"],\r",
+									"    properties: {\r",
+									"        id: { type: \"string\" },\r",
+									"        name: { type: \"string\" },\r",
+									"        idBoard: { type: \"string\" },\r",
+									"        closed: { type: \"boolean\" }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response matches list schema\", function () {\r",
+									"    pm.response.to.have.jsonSchema(listSchema)\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists?name={{listNameA}}&idBoard={{boardId}}&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{listNameA}}"
+								},
+								{
+									"key": "idBoard",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create list B",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.set(\"listNameB\", 'List B')"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"List created\", function () {   \r",
+									"    const data = pm.response.json()\r",
+									"    pm.collectionVariables.set(\"listBId\", data.id)\r",
+									"    pm.expect(data.name).to.eql(pm.variables.get(\"listNameB\"))\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists?name={{listNameB}}&idBoard={{boardId}}&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{listNameB}}"
+								},
+								{
+									"key": "idBoard",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all lists",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Lists exist in a board\", function () {\r",
+									"    const lists = pm.response.json()\r",
+									"    const listAexists = lists.some(a => a.id === pm.collectionVariables.get(\"listAId\"))\r",
+									"    const listBexists = lists.some(b => b.id === pm.collectionVariables.get(\"listBId\"))\r",
+									"    pm.expect(listAexists, \"List A should exist\").to.be.true\r",
+									"    pm.expect(listBexists, \"List B should exist\").to.be.true\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id/lists?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards",
+								":id",
+								"lists"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create multiple cards in list A",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"// Define all cards to create (only once, on first run)\r",
+									"if (!pm.variables.get(\"cards\")) {\r",
+									"    let cards = [\r",
+									"        {\"name\": \"Card 1\", \"desc\": \"Description 1\"},\r",
+									"        {\"name\": \"Card 2\", \"desc\": \"Description 2\"},\r",
+									"        {\"name\": \"Card 3\", \"desc\": \"Description 3\"}\r",
+									"    ]\r",
+									"    pm.collectionVariables.set(\"cards\", JSON.stringify(cards))\r",
+									"    pm.collectionVariables.set(\"cardIndex\", 0)    \r",
+									"}\r",
+									"\r",
+									"// Load data\r",
+									"let cards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"let index = parseInt(pm.collectionVariables.get(\"cardIndex\"))\r",
+									"\r",
+									"// Pick card for this request\r",
+									"pm.variables.set(\"cardName\", cards[index].name)\r",
+									"pm.variables.set(\"cardDesc\", cards[index].desc)\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let allPassed = true\r",
+									"let response = pm.response.json()\r",
+									"\r",
+									"// ---- ASSERTIONS ----\r",
+									"try {\r",
+									"    const cardSchema = {\r",
+									"    type: \"object\",\r",
+									"    required: [\"id\", \"name\", \"idList\", \"url\"],\r",
+									"    properties: {\r",
+									"        id: { type: \"string\" },\r",
+									"        name: { type: \"string\" },\r",
+									"        idList: { type: \"string\" },\r",
+									"        url: { type: \"string\" }\r",
+									"    }\r",
+									" }\r",
+									"    pm.test(\"Response matches card schema\", function () {\r",
+									"        pm.response.to.have.jsonSchema(cardSchema);\r",
+									"    })\r",
+									"} catch(e) { allPassed = false }\r",
+									"try {\r",
+									"    pm.test(\"Card has an ID\", function () {\r",
+									"        pm.expect(response.id).to.exist\r",
+									"    })\r",
+									"} catch(e) { allPassed = false }\r",
+									"\r",
+									"try {\r",
+									"    pm.test(\"Card has correct name and description\", function () {\r",
+									"        pm.expect(response.name).to.eql(pm.variables.get(\"cardName\"))\r",
+									"        pm.expect(response.desc).to.eql(pm.variables.get(\"cardDesc\"))\r",
+									"    })\r",
+									"} catch(e) { allPassed = false }\r",
+									"\r",
+									"try {\r",
+									"    pm.test(\"Card is in correct list\", function () {\r",
+									"    pm.expect(response.idList, \"Card should belong to list A\")\r",
+									"    .to.eql(pm.collectionVariables.get(\"listAId\"))\r",
+									"})\r",
+									"} catch(e) { allPassed = false }\r",
+									"\r",
+									"\r",
+									"// ---- LOOP LOGIC ----\r",
+									"if (!allPassed) {\r",
+									"    // Stop execution if something failed\r",
+									"    pm.execution.setNextRequest(null)\r",
+									"} else {\r",
+									"    // ---- SAVE DATA ----\r",
+									"    pm.collectionVariables.set(`card${pm.collectionVariables.get(\"cardIndex\")}Id`, response.id)\r",
+									"    // Increment index\r",
+									"    let index = parseInt(pm.collectionVariables.get(\"cardIndex\")) + 1\r",
+									"    pm.collectionVariables.set(\"cardIndex\", index)\r",
+									"\r",
+									"    let cards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    if (index < cards.length) {\r",
+									"        pm.execution.setNextRequest(\"Create multiple cards in list A\")\r",
+									"    }\r",
+									"     else {\r",
+									"    // Cleanup after last card  \r",
+									"     pm.collectionVariables.unset(\"cardIndex\")\r",
+									"     }\r",
+									"}\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards?idList={{listAId}}&key={{apiKey}}&token={{token}}&name={{cardName}}&desc={{cardDesc}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards"
+							],
+							"query": [
+								{
+									"key": "idList",
+									"value": "{{listAId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "name",
+									"value": "{{cardName}}"
+								},
+								{
+									"key": "desc",
+									"value": "{{cardDesc}}"
+								}
+							]
+						},
+						"description": "Creates multiple cards in **List A** using data from a predefined array.\n\nThe array of card objects (name + description) is stored in the **Pre-request Script**.\n\nThis request uses `postman.setNextRequest()` to loop until all cards in the array are created, then exits the loop.\n\n**Note:** If you run this request manually in Postman, you will need to click **Send** multiple times (once per card). When run with the Collection Runner or Newman, the loop executes automatically."
+					},
+					"response": []
+				},
+				{
+					"name": "Get cards in list A",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"All expected cards exist\", function () {\r",
+									"    let cards = pm.response.json()\r",
+									"    let expectedCards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    expectedCards.forEach(c => {\r",
+									"        let exists = cards.some(card => card.name === c.name)\r",
+									"        pm.expect(exists, `Card with name \"${c.name}\" should exist`).to.be.true\r",
+									"    })\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/cards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listAId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Move all cards to List B",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains right number of cards\", function () {\r",
+									"    let cards = pm.response.json()\r",
+									"    let expectedCards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    pm.expect(cards).to.be.an('array')\r",
+									"    pm.expect(cards.length).to.be.eql(expectedCards.length)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/moveAllCards?idBoard={{boardId}}&idList={{listBId}}&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"moveAllCards"
+							],
+							"query": [
+								{
+									"key": "idBoard",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "idList",
+									"value": "{{listBId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listAId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get cards in list B",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"All expected cards exist\", function () {\r",
+									"    let cards = pm.response.json()\r",
+									"    let expectedCards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    expectedCards.forEach(c => {\r",
+									"        let exists = cards.some(card => card.name === c.name)\r",
+									"        pm.expect(exists, `Card with name \"${c.name}\" should exist`).to.be.true\r",
+									"    })\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/cards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listBId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get cards in list A",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The list is empty\", function () {\r",
+									"    let cards = pm.response.json()\r",
+									"    pm.expect(cards).to.be.empty\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/cards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listAId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Invite member to the board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let responseData = pm.response.json()\r",
+									"\r",
+									"pm.test(\"Response contains members array\", function () {\r",
+									"    pm.expect(responseData.members).to.be.an(\"array\")\r",
+									"})\r",
+									"\r",
+									"// at least 2 members (admin + invited)\r",
+									"pm.test(\"Board has at least 2 members\", function () {\r",
+									"    pm.expect(responseData.members.length).to.be.at.least(2)\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Invited member name matches\", function () {\r",
+									"    let match = responseData.members.find(m => m.fullName === pm.variables.get(\"invitedFullName\"))\r",
+									"    pm.expect(match, `Expected to find member with name: ${pm.variables.get(\"invitedFullName\")}`).to.exist\r",
+									"\r",
+									"    // Save ID to collection for later use (removal request)\r",
+									"    pm.collectionVariables.set(\"invitedMemberId\", match.id)    \r",
+									"})\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let randomName = pm.variables.replaceIn(\"{{$randomFirstName}} {{$randomLastName}}\")\r",
+									"pm.variables.set(\"invitedFullName\", randomName)"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"fullName\": \"{{invitedFullName}}\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "https://api.trello.com/1/boards/:id/members?email={{$randomEmail}}&key={{apiKey}}&token={{token}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"trello",
+								"com"
+							],
+							"path": [
+								"1",
+								"boards",
+								":id",
+								"members"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "{{$randomEmail}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						},
+						"description": "Sends an invitation to a new member for the selected board.\n\nThe member’s **name and email** are generated dynamically in the **Pre-request Script**:\n\n- `invitedFullName` is set in request body\n    \n- random email is generated for the invitation\n    \n\n**Note:** This request is intended to run **once per collection execution**. The invited member’s ID is saved for later cleanup, so only the last invited member will be removed."
+					},
+					"response": []
+				},
+				{
+					"name": "Get members",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json()\r",
+									"let savedId = pm.collectionVariables.get(\"invitedMemberId\")\r",
+									"\r",
+									"pm.test(\"Invited member is still on the board\", function () {\r",
+									"    let ids = response.map(m => m.id)\r",
+									"    pm.expect(ids).to.include(savedId)\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "https://api.trello.com/1/boards/:id/members?key={{apiKey}}&token={{token}}",
+							"protocol": "https",
+							"host": [
+								"api",
+								"trello",
+								"com"
+							],
+							"path": [
+								"1",
+								"boards",
+								":id",
+								"members"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Remove a member",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Invited member is no longer on the board\", function(){\r",
+									"    let removedMemberId = pm.collectionVariables.get(\"invitedMemberId\");\r",
+									"    let response = pm.response.json();\r",
+									"    pm.expect(response.members).to.be.an(\"array\")\r",
+									"    let ids =  response.members.map(m=>m.id)\r",
+									"    pm.expect(ids).to.not.include(removedMemberId)\r",
+									"})\r",
+									"\r",
+									"\r",
+									"pm.collectionVariables.unset(\"invitedMemberId\");"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id/members/:idMember?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards",
+								":id",
+								"members",
+								":idMember"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "idMember",
+									"value": "{{invitedMemberId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update a card",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"pm.variables.set(\"description\", \"This is a random description.\")"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let response = pm.response.json()\r",
+									"\r",
+									"pm.test(\"Response contains the sent comment\", function () {\r",
+									"    pm.expect(response.desc).to.include(pm.variables.get(\"description\"));\r",
+									"});\r",
+									"\r",
+									"let cards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"cards[0].desc = response.desc\r",
+									"pm.collectionVariables.set(\"cards\", JSON.stringify(cards))"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards/:id?key={{apiKey}}&token={{token}}&desc={{description}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "desc",
+									"value": "{{description}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{card0Id}}"
+								}
+							]
+						},
+						"description": "Updates the **description** of a specific card.\n\n- The card ID is retrieved from **collection variables**, saved during the card creation step.\n    \n- The new description is defined in the **Pre-request Script** or request body.\n    \n\n**Note:** This request is intended to run **once per collection execution**."
+					},
+					"response": []
+				},
+				{
+					"name": "Get cards in list B",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"All expected cards exist\", function () {\r",
+									"    let cards = pm.response.json()   \r",
+									"    let expectedCards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    expectedCards.forEach(c => {\r",
+									"        let exists = cards.some(card => card.desc === c.desc)\r",
+									"        pm.expect(exists, `Card with name \"${c.desc}\" should exist`).to.be.true\r",
+									"    })\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/cards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listBId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete all cards in list B",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"let cards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"\r",
+									"// Get the current index (or start at 0)\r",
+									"let index = parseInt(pm.collectionVariables.get(\"deleteIndex\") || 0, 10);\r",
+									"\r",
+									"// If index is still in range, pick the right card ID\r",
+									"if (index < cards.length) {\r",
+									"    let currentCardId = pm.collectionVariables.get(`card${index}Id`);\r",
+									"    pm.collectionVariables.set(\"cardId\", currentCardId);\r",
+									"} "
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"let index = parseInt(pm.collectionVariables.get(\"deleteIndex\") || 0, 10)\r",
+									"index++\r",
+									"\r",
+									"// If there is a next card variable, keep looping\r",
+									"if (pm.collectionVariables.get(`card${index}Id`)) {\r",
+									"    pm.collectionVariables.set(\"deleteIndex\", index)\r",
+									"    pm.execution.setNextRequest(\"Delete all cards in list B\")\r",
+									"} else {\r",
+									"    // No more cards, stop and clean up\r",
+									"    pm.collectionVariables.unset(\"deleteIndex\") \r",
+									"    pm.collectionVariables.unset(\"cardId\") \r",
+									"    let cards = JSON.parse(pm.collectionVariables.get(\"cards\"))\r",
+									"    cards.forEach((card, i)=>{\r",
+									"    pm.collectionVariables.unset(`card${i}Id`)\r",
+									"    })  \r",
+									"    pm.collectionVariables.unset(\"cards\")\r",
+									"}"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{cardId}}"
+								}
+							]
+						},
+						"description": "Deletes all cards created in **List A and then moved to List B** using the **cards array** stored in **collection variables**.\n\nDeletes cards from **List B** one by one using saved card IDs.\n\n- Card IDs are stored in **collection variables** during the creation step.\n    \n- A **loop index** is used to select which card to delete from the saved IDs.\n    \n- The request uses `postman.setNextRequest()` to continue looping until all cards are removed.\n    \n\n**Note:** If run manually, you would need to click **Send** multiple times (once per card) to delete all cards. When run in the **Collection Runner** or **Newman**, the loop executes automatically, removing all cards in the array."
+					},
+					"response": []
+				},
+				{
+					"name": "Get cards in list B",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"The list is empty\", function () {\r",
+									"    let cards = pm.response.json()\r",
+									"    pm.expect(cards).to.be.empty\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id/cards?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id",
+								"cards"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{listAId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Archive List A",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"List archived successfully\", function () {\r",
+									"    let list = pm.response.json()\r",
+									"    pm.expect(list.closed).to.eql(true)\r",
+									"})\r",
+									"\r",
+									"pm.collectionVariables.unset(\"listNameA\")\r",
+									"pm.collectionVariables.unset(\"listAId\")\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/{{listAId}}/closed?value=true&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								"{{listAId}}",
+								"closed"
+							],
+							"query": [
+								{
+									"key": "value",
+									"value": "true"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Archive List B",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"List archived successfully\", function () {\r",
+									"    let list = pm.response.json()\r",
+									"    pm.expect(list.closed).to.eql(true)\r",
+									"})\r",
+									"\r",
+									"pm.collectionVariables.unset(\"listNameB\")\r",
+									"pm.collectionVariables.unset(\"listBId\")"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/{{listBId}}/closed?value=true&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								"{{listBId}}",
+								"closed"
+							],
+							"query": [
+								{
+									"key": "value",
+									"value": "true"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all lists on a board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"All lists are archived\", function () {\r",
+									"    let lists = pm.response.json()\r",
+									"    lists.forEach(list => {\r",
+									"        pm.expect(list.closed, `List ${list.name} is archived`).to.be.true;\r",
+									"    });\r",
+									"});"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id/lists?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards",
+								":id",
+								"lists"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete a board",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.collectionVariables.unset(\"boardName\")\r",
+									"pm.collectionVariables.unset(\"boardId\")"
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						},
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {},
+								"requests": {}
+							}
+						}
+					],
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Tests the standard, valid workflows such as creating a board, adding lists, creating cards, updating entities, and deleting resources.\n\nEnsures the API behaves correctly under normal conditions.\n\n**Tests Executed at this folder level:**\n\n- **Status code checks** to confirm all requests return the expected HTTP status.\n    \n- **Performance tests** to ensure requests complete within acceptable time limits.\n    \n- **Header validations** to verify correct content-type.\n    \n- **Safety cleanup**: clears temporary collection variables to maintain a clean state after tests.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							""
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {},
+						"exec": [
+							"pm.test(\"Response time is below 1000ms\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(1500)\r",
+							"})\r",
+							"\r",
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200)\r",
+							"})\r",
+							"\r",
+							"if (pm.response.text()) {\r",
+							"    pm.test(\"Response has Content-Type header\", function () {\r",
+							"        pm.response.to.have.header(\"Content-Type\")\r",
+							"    })\r",
+							"\r",
+							"    pm.test(\"Content-Type is JSON\", function () {\r",
+							"        pm.expect(pm.response.headers.get(\"Content-Type\")).to.include(\"application/json\")\r",
+							"    })\r",
+							"}\r",
+							"\r",
+							"// Folder-level safety cleanup\r",
+							"if (pm.info.requestName === \"Delete a board\") {\r",
+							"    Object.keys(pm.collectionVariables.toObject()).forEach(key => {\r",
+							"        pm.collectionVariables.unset(key)\r",
+							"    });\r",
+							"    console.log(\"✅ All leftover variables have been cleared.\")\r",
+							"}\r",
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Missing authentication",
+			"item": [
+				{
+					"name": "Create board with missing token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"No board should be created\", function () {\r",
+									"    let res = pm.response.json()\r",
+									"    pm.expect(res).to.not.have.property(\"id\")\r",
+									"    pm.expect(res.message.toLowerCase()).to.include(\"missing scopes\")\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards?name={{boardName}}&key={{apiKey}}&defaultLists=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{boardName}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "defaultLists",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create board with missing api key",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"No board should be created\", function () {\r",
+									"    let res = pm.response.json()\r",
+									"    pm.expect(res).to.not.have.property(\"id\")\r",
+									"    pm.expect(res.message.toLowerCase()).to.include(\"missing scopes\")\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards?name={{boardName}}&key={{apiKey}}&defaultLists=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{boardName}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "defaultLists",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create list with invalid token",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected auth failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid app token\")         \r",
+									"    )\r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists?name={{listName}}&idBoard={{boardId}}&key={{apiKey}}&token={{invalidToken}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "{{listName}}"
+								},
+								{
+									"key": "idBoard",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{invalidToken}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create card with missing api key",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected auth failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid key\")         \r",
+									"    )\r",
+									"})\r",
+									"\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards?idList={{listId}}&token={{token}}&name={{cardName}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards"
+							],
+							"query": [
+								{
+									"key": "idList",
+									"value": "{{listId}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "name",
+									"value": "{{cardName}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a board with invalid api key",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected auth failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid key\")         \r",
+									"    )\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id?key={{invalidKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"",
+								"boards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{invalidKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{boardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Verifies that requests without proper API keys or tokens are rejected.\n\nConfirms that appropriate status codes and error messages are returned for unauthorized requests.\n\nStatus test is executed at this folder level.\n\nIn the pre-request script are set all local variables needed in the tests.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.variables.set(\"invalidToken\", \"FAKETOKEN123\")\r",
+							"pm.variables.set(\"invalidKey\", \"7a1d2cc5ebced1c930f23bddab762\")\r",
+							"pm.variables.set(\"boardName\", \"Test border\")\r",
+							"pm.variables.set(\"listName\", \"Test list\")\r",
+							"pm.variables.set(\"cardName\", \"Test card\")\r",
+							"pm.variables.set(\"boardId\", \"000000000000000000000001\")\r",
+							"pm.variables.set(\"listId\", \"000000000000000000000002\")"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.test(\"Should fail with 401 Unauthorized\", function () {\r",
+							"    pm.response.to.have.status(401)\r",
+							"})\r",
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Invalid inputs",
+			"item": [
+				{
+					"name": "Create board with missing name",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"No board should be created\", function () {\r",
+									"    let res = pm.response.json()\r",
+									"    pm.expect(res).to.not.have.property(\"id\")\r",
+									"    pm.expect(res.message.toLowerCase()).to.include(\"invalid value for name\")\r",
+									"    pm.expect(res).to.have.property(\"error\")\r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards?token={{token}}&key={{apiKey}}&defaultLists=false",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards"
+							],
+							"query": [
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "defaultLists",
+									"value": "false"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create list with missing name",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid value for name\")         \r",
+									"    )\r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists?idBoard={{boardId}}&key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists"
+							],
+							"query": [
+								{
+									"key": "idBoard",
+									"value": "{{boardId}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create card with invalid list id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"   let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid value for idlist\")         \r",
+									"    )\r",
+									"})\r",
+									"\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards?listId={{invalidListId}}&token={{token}}&key={{apiKey}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards"
+							],
+							"query": [
+								{
+									"key": "listId",
+									"value": "{{invalidListId}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								},
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a list with invalid id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"invalid id\")         \r",
+									"    )\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{invalidListId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Sends requests with invalid or malformed data.\n\nEnsures the API returns meaningful validation errors and does not crash.\n\nStatus test is executed at this folder level.\n\nIn the pre-request script are set all local variables needed in the tests.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"//save board id in correct form\r",
+							"pm.variables.set(\"boardId\", \"000000000000000000000001\")\r",
+							"//save list id in invalid format\r",
+							"pm.variables.set(\"invalidListId\", \"1234\")"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.test(\"Status code is 400\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							""
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "Nonexistent resource",
+			"item": [
+				{
+					"name": "Get a board with non-existent id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"the requested resource was not found\")         \r",
+									"    )\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/boards/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"boards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{dummyBoardId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a list with non-existent id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"model not found\")         \r",
+									"    )\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/lists/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"lists",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{dummyListId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get a card with non-existent id",
+					"event": [
+						{
+							"listen": "prerequest",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						},
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Response contains expected failure message\", function (){\r",
+									"    let body = pm.response.text().toLowerCase()   \r",
+									"    pm.expect(body).to.satisfy(msg =>     \r",
+									"        msg.includes(\"the requested resource was not found\")         \r",
+									"    )\r",
+									"})"
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/cards/:id?key={{apiKey}}&token={{token}}",
+							"host": [
+								"{{baseUrl}}"
+							],
+							"path": [
+								"cards",
+								":id"
+							],
+							"query": [
+								{
+									"key": "key",
+									"value": "{{apiKey}}"
+								},
+								{
+									"key": "token",
+									"value": "{{token}}"
+								}
+							],
+							"variable": [
+								{
+									"key": "id",
+									"value": "{{dummyListId}}"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Attempts to access resources that do not exist.\n\nChecks that the API responds with proper 404 errors.\n\nStatus test is executed at this folder level.\n\nIn the pre-request script are set all local variables needed in the tests.",
+			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"//generate ids that are in the correct format but don't exist\r",
+							"let randomNum = Math.floor(Math.random() * 1000).toString().padStart(3, \"0\")\r",
+							"pm.variables.set(\"dummyBoardId\", \"000000000000000000000\" + randomNum)\r",
+							"pm.variables.set(\"dummyListId\", \"000000000000000000001\" + randomNum)\r",
+							"pm.variables.set(\"dummyCardId\", \"000000000000000000002\" + randomNum)"
+						]
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"packages": {},
+						"exec": [
+							"pm.test(\"Status code is 404\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});"
+						]
+					}
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
