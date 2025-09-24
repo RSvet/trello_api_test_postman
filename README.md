@@ -32,6 +32,8 @@ Using your own Trello account is also possible — simply replace the placeholde
 - **README.md** – Project documentation
 
 ### ⚙️ Running Tests Locally
+**Note**: This collection is designed to be run using Postman Runner or Newman. Some requests are connected and may run in loops, so running them manually one by one is not recommended. If you want to run requests manually, follow the instructions provided in each request’s description.
+
 *Using Postman*  
 1. Import TrelloCollection.json and TrelloEnv.json.
 2. Fill in key and token in the environment.
@@ -40,7 +42,7 @@ Using your own Trello account is also possible — simply replace the placeholde
 *Using Newman* 
 1. Install Newman globally (if not already): npm install  
    `-g newman newman-reporter-htmlextra`
-2. Run the collection with the environment:  
+2. Run the collection with the environment (don't forget to add provided api key and token inside environment file):  
    `newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra`
 3. Run script is defined in package.json to simplify running tests:  
    `newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html`  
