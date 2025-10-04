@@ -31,7 +31,7 @@ Using your own Trello account is also possible — simply replace the placeholde
 - **package.json** – Optional NPM script to run the collection via Newman with HTML report generation  
 - **README.md** – Project documentation
 
-### ⚙️ Running Tests Locally
+### ⚙️ Running Tests
 **Note**: This collection is designed to be run using Postman Runner or Newman. Some requests are connected and may run in loops, so running them manually one by one is not recommended. If you want to run requests manually, follow the instructions provided in each request’s description.
 
 *Using Postman*  
@@ -47,6 +47,14 @@ Using your own Trello account is also possible — simply replace the placeholde
 3. Run script is defined in package.json to simplify running tests:  
    `newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html`  
     Then run: `npm run test:trello`
+
+*CI / Automated Testing (GitHub Actions)*
+1. Keep placeholders in TrelloEnv.json.
+2. Use environment variables with GitHub Actions secrets (TRELLO_API_KEY and TRELLO_TOKEN).
+3. Run the CI script:
+   `npm run test:trello:ci` 
+This automatically injects the API key and token into Newman without exposing credentials in the repo.
+Note: Currently, the CI workflow will run successfully only in your configured GitHub repository with secrets set. Local users can continue to run tests manually with npm run test:trello.
 
 ### 🧪 Folder & Request Descriptions
 
