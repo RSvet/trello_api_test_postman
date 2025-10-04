@@ -22,3 +22,6 @@ jobs:
 
       - name: Run Trello API tests
         run: npm run test:trello
+        env:
+          TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
+          TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
