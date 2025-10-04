@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test:trello": "newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html --env-var apiKey=$TRELLO_API_KEY --env-var token=$TRELLO_TOKEN"
+    "test:trello": "newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html",
+    "test:trello:ci": "newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html --env-var apiKey=$TRELLO_API_KEY --env-var token=$TRELLO_TOKEN"
   },
   "author": "Svetlana",
   "license": "ISC",
