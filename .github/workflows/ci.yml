@@ -1,0 +1,24 @@
+name: CI - Trello API Tests
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:   # allows manual run
+
+jobs:
+  api-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Run Trello API tests
+        run: npx newman run trello-collection.json -e trello-env.json
