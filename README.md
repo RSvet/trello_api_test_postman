@@ -34,12 +34,12 @@ Using your own Trello account is also possible — simply replace the placeholde
 ### ⚙️ Running Tests
 **Note**: This collection is designed to be run using Postman Runner or Newman. Some requests are connected and may run in loops, so running them manually one by one is not recommended. If you want to run requests manually, follow the instructions provided in each request’s description.
 
-*Using Postman*  
+#### *Using Postman*  
 1. Import TrelloCollection.json and TrelloEnv.json.
 2. Fill in key and token in the environment.
 3. Run the collection using Postman Runner.
 
-*Using Newman* 
+#### *Using Newman* 
 1. Install Newman globally (if not already): npm install  
    `-g newman newman-reporter-htmlextra`
 2. Run the collection with the environment (don't forget to add provided api key and token inside environment file):  
@@ -48,13 +48,17 @@ Using your own Trello account is also possible — simply replace the placeholde
    `newman run TrelloCollection.json -e TrelloEnv.json -r htmlextra --reporter-htmlextra-export ./newman/trello-report.html`  
     Then run: `npm run test:trello`
 
-*CI / Automated Testing (GitHub Actions)*
+#### *CI / Automated Testing (GitHub Actions)*
 1. Keep placeholders in TrelloEnv.json.
-2. Use environment variables with GitHub Actions secrets (TRELLO_API_KEY and TRELLO_TOKEN).
-3. Run the CI script:
-   `npm run test:trello:ci` 
-This automatically injects the API key and token into Newman without exposing credentials in the repo.
-Note: Currently, the CI workflow will run successfully only in your configured GitHub repository with secrets set. Local users can continue to run tests manually with npm run test:trello.
+2. The CI workflow uses GitHub Actions secrets (TRELLO_API_KEY and TRELLO_TOKEN) so credentials are never exposed in the repository.
+3. On every push to main, or via manual trigger, the workflow runs the Newman test suite `npm run test:trello:ci`    
+This automatically injects the API key and token into Newman without exposing credentials in the repo.  
+  
+Test results generate an HTML report (trello-report.html) which is uploaded as a workflow artifact. 
+
+👉 **To view the report:** open the latest GitHub Actions run → scroll to Artifacts → download trello-api-report.  
+
+**Note for external users:** The CI workflow is configured with repository secrets and will run only here. If you fork or clone this project, you can still run tests locally by replacing the placeholders in TrelloEnv.json and executing: `npm run test:trello`.
 
 ### 🧪 Folder & Request Descriptions
 
