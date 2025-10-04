@@ -10,13 +10,13 @@
 		},
 		{
 			"key": "apiKey",
-			"value": "d04f397d49182c8fc52f47e5c1591bd7",
+			"value": "{{TRELLO_API_KEY}}",
 			"type": "default",
 			"enabled": true
 		},
 		{
 			"key": "token",
-			"value": "ATTA074af120572f128adee6bd1d80a11a995e0f1be831be4bf739eae24bddf1c2b1C5FE8330",
+			"value": "{{TRELLO_TOKEN}}",
 			"type": "default",
 			"enabled": true
 		}
