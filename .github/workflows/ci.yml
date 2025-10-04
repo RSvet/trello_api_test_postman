@@ -25,3 +25,8 @@ jobs:
         env:
           TRELLO_API_KEY: ${{ secrets.TRELLO_API_KEY }}
           TRELLO_TOKEN: ${{ secrets.TRELLO_TOKEN }}
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v3
+        with:
+          name: trello-api-report
+          path: ./newman/trello-report.html
